@@ -305,7 +305,34 @@ func init() {
 				Name:        "clientid_size",
 				Label:       "VayDNS client ID size (bytes)",
 				Type:        InputTypeNumber,
-				Description: "Optional; default 2. Ignored when DNSTT compatibility is enabled",
+				Description: "Client ID size in bytes (default 2). Cannot be used with --dnstt_compat",
+				ShowIf: func(ctx *Context) bool {
+					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
+				},
+			},
+			{
+				Name:        "idle_timeout",
+				Label:       "VayDNS idle timeout",
+				Type:        InputTypeText,
+				Description: "Session idle timeout (e.g. 60s, 2m). Default: 60s (2m with --dnstt_compat)",
+				ShowIf: func(ctx *Context) bool {
+					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
+				},
+			},
+			{
+				Name:        "keepalive",
+				Label:       "VayDNS keepalive interval",
+				Type:        InputTypeText,
+				Description: "Keepalive ping interval (e.g. 10s). Must be less than idle timeout. Default: 10s",
+				ShowIf: func(ctx *Context) bool {
+					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
+				},
+			},
+			{
+				Name:        "fallback",
+				Label:       "VayDNS fallback address",
+				Type:        InputTypeText,
+				Description: "UDP endpoint for non-DNS packets (e.g. 127.0.0.1:8888)",
 				ShowIf: func(ctx *Context) bool {
 					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
 				},

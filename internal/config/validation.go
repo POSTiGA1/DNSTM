@@ -161,6 +161,9 @@ func (c *Config) validateTunnels() error {
 			if t.VayDNS.MTU != 0 && (t.VayDNS.MTU < 512 || t.VayDNS.MTU > 1400) {
 				return fmt.Errorf("tunnel '%s': vaydns.mtu must be between 512 and 1400", t.Tag)
 			}
+			if t.VayDNS.DnsttCompat && t.VayDNS.ClientIDSize != 0 {
+				return fmt.Errorf("tunnel '%s': vaydns.clientid_size cannot be set with dnstt_compat (compat mode forces 8-byte client IDs)", t.Tag)
+			}
 			if !t.VayDNS.DnsttCompat && t.VayDNS.ClientIDSize < 0 {
 				return fmt.Errorf("tunnel '%s': vaydns.clientid_size must not be negative", t.Tag)
 			}

@@ -103,6 +103,21 @@ func TestValidate_VayDNSSessionTiming(t *testing.T) {
 		}
 	})
 
+	t.Run("clientid_size with dnstt_compat", func(t *testing.T) {
+		cfg := base
+		cfg.Tunnels = []TunnelConfig{{
+			Tag:       "t",
+			Transport: TransportVayDNS,
+			Backend:   "socks",
+			Domain:    "d.example.com",
+			VayDNS:    &VayDNSConfig{DnsttCompat: true, ClientIDSize: 4},
+		}}
+		err := cfg.Validate()
+		if err == nil || !strings.Contains(err.Error(), "clientid_size cannot be set with dnstt_compat") {
+			t.Fatalf("Validate() = %v, want compat conflict error", err)
+		}
+	})
+
 	t.Run("negative clientid_size", func(t *testing.T) {
 		cfg := base
 		cfg.Tunnels = []TunnelConfig{{

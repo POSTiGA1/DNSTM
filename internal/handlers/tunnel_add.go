@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/net2share/dnstm/internal/actions"
 	"github.com/net2share/dnstm/internal/certs"
@@ -160,6 +161,8 @@ func addTunnelInteractive(ctx *actions.Context, cfg *config.Config) error {
 	}
 
 	var vaydnsDnsttCompat bool
+	var vaydnsClientIDSize int
+	var vaydnsIdleTimeout, vaydnsKeepAlive string
 	if config.TransportType(transportType) == config.TransportVayDNS {
 		confirm, confirmErr := tui.RunConfirm(tui.ConfirmConfig{
 			Title:       "DNSTT-compatible wire format?",
@@ -169,6 +172,91 @@ func addTunnelInteractive(ctx *actions.Context, cfg *config.Config) error {
 			return confirmErr
 		}
 		vaydnsDnsttCompat = confirm
+
+		// clientid_size: only if not dnstt-compat (compat forces 8-byte)
+		if !vaydnsDnsttCompat {
+			for {
+				cidStr, confirmed, cidErr := tui.RunInput(tui.InputConfig{
+					Title:       "Client ID Size",
+					Description: "Client ID size in bytes (1-8)",
+					Value:       "2",
+				})
+				if cidErr != nil {
+					return cidErr
+				}
+				if !confirmed {
+					return nil
+				}
+				if cidStr == "" {
+					cidStr = "2"
+				}
+				parsed, parseErr := strconv.Atoi(cidStr)
+				if parseErr != nil || parsed < 1 || parsed > 8 {
+					ctx.Output.Error("Client ID size must be between 1 and 8")
+					continue
+				}
+				vaydnsClientIDSize = parsed
+				break
+			}
+		}
+
+		// idle_timeout
+		defaultIdle := "60s"
+		if vaydnsDnsttCompat {
+			defaultIdle = "2m"
+		}
+		for {
+			idleStr, confirmed, idleErr := tui.RunInput(tui.InputConfig{
+				Title:       "Idle Timeout",
+				Description: "Session idle timeout (e.g. 60s, 2m)",
+				Value:       defaultIdle,
+			})
+			if idleErr != nil {
+				return idleErr
+			}
+			if !confirmed {
+				return nil
+			}
+			if idleStr == "" {
+				idleStr = defaultIdle
+			}
+			if _, parseErr := time.ParseDuration(idleStr); parseErr != nil {
+				ctx.Output.Error("Invalid duration format (e.g. 60s, 2m)")
+				continue
+			}
+			vaydnsIdleTimeout = idleStr
+			break
+		}
+
+		// keepalive
+		for {
+			keepStr, confirmed, keepErr := tui.RunInput(tui.InputConfig{
+				Title:       "Keepalive Interval",
+				Description: "Keepalive ping interval; must be less than idle timeout",
+				Value:       "10s",
+			})
+			if keepErr != nil {
+				return keepErr
+			}
+			if !confirmed {
+				return nil
+			}
+			if keepStr == "" {
+				keepStr = "10s"
+			}
+			keepDur, parseErr := time.ParseDuration(keepStr)
+			if parseErr != nil {
+				ctx.Output.Error("Invalid duration format (e.g. 10s, 5s)")
+				continue
+			}
+			idleDur, _ := time.ParseDuration(vaydnsIdleTimeout)
+			if keepDur >= idleDur {
+				ctx.Output.Error("Keepalive must be less than idle timeout")
+				continue
+			}
+			vaydnsKeepAlive = keepStr
+			break
+		}
 	}
 
 	// Build tunnel config
@@ -185,8 +273,11 @@ func addTunnelInteractive(ctx *actions.Context, cfg *config.Config) error {
 	}
 	if tunnelCfg.Transport == config.TransportVayDNS {
 		tunnelCfg.VayDNS = &config.VayDNSConfig{
-			MTU:         mtu,
-			DnsttCompat: vaydnsDnsttCompat,
+			MTU:          mtu,
+			DnsttCompat:  vaydnsDnsttCompat,
+			ClientIDSize: vaydnsClientIDSize,
+			IdleTimeout:  vaydnsIdleTimeout,
+			KeepAlive:    vaydnsKeepAlive,
 		}
 	}
 
@@ -264,12 +355,21 @@ func addTunnelNonInteractive(ctx *actions.Context, cfg *config.Config) error {
 		if mtu == 0 {
 			mtu = 1232
 		}
-		v := &config.VayDNSConfig{
-			MTU:         mtu,
-			DnsttCompat: ctx.GetBool("dnstt_compat"),
+		dnsttCompat := ctx.GetBool("dnstt_compat")
+		cid := ctx.GetInt("clientid_size")
+
+		// clientid_size is ignored by vaydns-server when dnstt-compat is set (forced to 8)
+		if dnsttCompat && cid != 0 {
+			return fmt.Errorf("--clientid_size cannot be used with --dnstt_compat (compat mode forces 8-byte client IDs)")
 		}
-		if cid := ctx.GetInt("clientid_size"); cid != 0 {
-			v.ClientIDSize = cid
+
+		v := &config.VayDNSConfig{
+			MTU:          mtu,
+			DnsttCompat:  dnsttCompat,
+			ClientIDSize: cid,
+			IdleTimeout:  ctx.GetString("idle_timeout"),
+			KeepAlive:    ctx.GetString("keepalive"),
+			Fallback:     ctx.GetString("fallback"),
 		}
 		tunnelCfg.VayDNS = v
 	}
