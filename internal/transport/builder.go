@@ -294,8 +294,8 @@ func (b *Builder) buildVayDNSTunnel(tunnel *config.TunnelConfig, backend *config
 	if n := tunnel.VayDNS.VayDNSClientIDSizeForFlag(); n > 0 {
 		args = append(args, "-clientid-size", strconv.Itoa(n))
 	}
-	// Do not pass -record-type: many deployed vaydns-server builds predate that flag and exit
-	// with "flag provided but not defined". Upstream default is TXT where the flag exists.
+	// Do not pass -record-type: the DNS router does not yet support non-TXT record types.
+	// VayDNS defaults to TXT, which is what we need.
 
 	result.ExecStart = fmt.Sprintf("%s %s", VayDNSBinaryPath(), strings.Join(args, " "))
 	return result, nil

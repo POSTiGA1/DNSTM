@@ -293,7 +293,7 @@ func init() {
 				ShowIf:  func(ctx *Context) bool { return !ctx.IsInteractive },
 			},
 			{
-				Name:        "dnstt_compat",
+				Name:        "dnstt-compat",
 				Label:       "DNSTT wire compatibility (VayDNS)",
 				Type:        InputTypeBool,
 				Description: "Match vaydns-server -dnstt-compat for legacy dnstt clients",
@@ -302,19 +302,19 @@ func init() {
 				},
 			},
 			{
-				Name:        "clientid_size",
+				Name:        "clientid-size",
 				Label:       "VayDNS client ID size (bytes)",
 				Type:        InputTypeNumber,
-				Description: "Client ID size in bytes (default 2). Cannot be used with --dnstt_compat",
+				Description: "Client ID size in bytes (default 2). Cannot be used with --dnstt-compat",
 				ShowIf: func(ctx *Context) bool {
 					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
 				},
 			},
 			{
-				Name:        "idle_timeout",
+				Name:        "idle-timeout",
 				Label:       "VayDNS idle timeout",
 				Type:        InputTypeText,
-				Description: "Session idle timeout (e.g. 60s, 2m). Default: 60s (2m with --dnstt_compat)",
+				Description: "Session idle timeout (e.g. 60s, 2m). Default: 60s (2m with --dnstt-compat)",
 				ShowIf: func(ctx *Context) bool {
 					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
 				},

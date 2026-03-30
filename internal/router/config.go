@@ -33,6 +33,7 @@ type RouteConfig = config.RouteConfig
 type ShadowsocksConfig = config.ShadowsocksConfig
 type SlipstreamConfig = config.SlipstreamConfig
 type DNSTTConfig = config.DNSTTConfig
+type VayDNSConfig = config.VayDNSConfig
 
 // Re-export backend constants
 const (
@@ -46,6 +47,7 @@ const (
 const (
 	TransportSlipstream = config.TransportSlipstream
 	TransportDNSTT      = config.TransportDNSTT
+	TransportVayDNS     = config.TransportVayDNS
 )
 
 // CertConfig holds certificate paths and fingerprint.

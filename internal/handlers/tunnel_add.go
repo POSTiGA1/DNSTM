@@ -355,19 +355,19 @@ func addTunnelNonInteractive(ctx *actions.Context, cfg *config.Config) error {
 		if mtu == 0 {
 			mtu = 1232
 		}
-		dnsttCompat := ctx.GetBool("dnstt_compat")
-		cid := ctx.GetInt("clientid_size")
+		dnsttCompat := ctx.GetBool("dnstt-compat")
+		cid := ctx.GetInt("clientid-size")
 
-		// clientid_size is ignored by vaydns-server when dnstt-compat is set (forced to 8)
+		// clientid-size is ignored by vaydns-server when dnstt-compat is set (forced to 8)
 		if dnsttCompat && cid != 0 {
-			return fmt.Errorf("--clientid_size cannot be used with --dnstt_compat (compat mode forces 8-byte client IDs)")
+			return fmt.Errorf("--clientid-size cannot be used with --dnstt-compat (compat mode forces 8-byte client IDs)")
 		}
 
 		v := &config.VayDNSConfig{
 			MTU:          mtu,
 			DnsttCompat:  dnsttCompat,
 			ClientIDSize: cid,
-			IdleTimeout:  ctx.GetString("idle_timeout"),
+			IdleTimeout:  ctx.GetString("idle-timeout"),
 			KeepAlive:    ctx.GetString("keepalive"),
 			Fallback:     ctx.GetString("fallback"),
 		}

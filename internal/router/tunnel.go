@@ -153,6 +153,17 @@ Status:    %s
 	if t.Transport == config.TransportDNSTT && t.Config != nil && t.Config.DNSTT != nil {
 		info += fmt.Sprintf("MTU:       %d\n", t.Config.DNSTT.MTU)
 	}
+	if t.Transport == config.TransportVayDNS && t.Config != nil && t.Config.VayDNS != nil {
+		v := t.Config.VayDNS
+		info += fmt.Sprintf("MTU:       %d\n", v.MTU)
+		info += fmt.Sprintf("Idle:      %s\n", v.ResolvedVayDNSIdleTimeout())
+		info += fmt.Sprintf("Keepalive: %s\n", v.ResolvedVayDNSKeepAlive())
+		if v.DnsttCompat {
+			info += "Compat:    dnstt\n"
+		} else if v.ClientIDSize > 0 {
+			info += fmt.Sprintf("ClientID:  %d bytes\n", v.ClientIDSize)
+		}
+	}
 	return info
 }
 
