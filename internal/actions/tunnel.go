@@ -222,11 +222,11 @@ func init() {
 			},
 			{
 				Name:        "transport",
-				Label:       "Transport",
+				Label:       "Transport (vaydns, dnstt, slipstream)",
 				Type:        InputTypeSelect,
 				Required:    true,
 				Options:     TransportOptions(),
-				Description: "The transport protocol to use",
+				Description: "Transport protocol (vaydns, dnstt, slipstream)",
 				ShowIf:      func(ctx *Context) bool { return !ctx.IsInteractive },
 			},
 			{
@@ -357,27 +357,27 @@ func init() {
 			},
 			{
 				Name:        "queue-overflow",
-				Label:       "VayDNS queue overflow mode",
+				Label:       "VayDNS queue overflow mode (drop, block)",
 				Type:        InputTypeText,
-				Description: "Queue overflow behavior: drop (default) or block",
+				Description: "Queue overflow mode (drop, block). Default: drop",
 				ShowIf: func(ctx *Context) bool {
 					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
 				},
 			},
 			{
 				Name:        "log-level",
-				Label:       "VayDNS log level",
+				Label:       "VayDNS log level (debug, info, warning, error)",
 				Type:        InputTypeText,
-				Description: "Log level: debug, info (default), warning, error",
+				Description: "Log level (debug, info, warning, error). Default: info",
 				ShowIf: func(ctx *Context) bool {
 					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
 				},
 			},
 			{
 				Name:        "record-type",
-				Label:       "VayDNS DNS record type",
+				Label:       "VayDNS record type (txt, cname, a, aaaa, mx, ns, srv)",
 				Type:        InputTypeText,
-				Description: "DNS record type: txt (default), cname, a, aaaa, mx, ns, srv. Cannot use non-txt with --dnstt-compat",
+				Description: "DNS record type (txt, cname, a, aaaa, mx, ns, srv). Default: txt. Cannot use non-txt with --dnstt-compat",
 				ShowIf: func(ctx *Context) bool {
 					return !ctx.IsInteractive && config.TransportType(ctx.GetString("transport")) == config.TransportVayDNS
 				},

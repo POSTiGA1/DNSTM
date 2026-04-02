@@ -415,6 +415,20 @@ func addTunnelNonInteractive(ctx *actions.Context, cfg *config.Config) error {
 
 		recordType := ctx.GetString("record-type")
 
+		// Validate record-type
+		if recordType != "" {
+			valid := false
+			for _, rt := range config.ValidVayDNSRecordTypes {
+				if recordType == rt {
+					valid = true
+					break
+				}
+			}
+			if !valid {
+				return fmt.Errorf("invalid --record-type '%s' (must be one of: txt, cname, a, aaaa, mx, ns, srv)", recordType)
+			}
+		}
+
 		// clientid-size is ignored by vaydns-server when dnstt-compat is set (forced to 8)
 		if dnsttCompat && cid != 0 {
 			return fmt.Errorf("--clientid-size cannot be used with --dnstt-compat (compat mode forces 8-byte client IDs)")
@@ -673,6 +687,23 @@ func createTunnel(ctx *actions.Context, tunnelCfg *config.TunnelConfig, cfg *con
 		ctx.Output.Println()
 		ctx.Output.Info("Public Key:")
 		ctx.Output.Println(publicKey)
+	}
+
+	if tunnelCfg.Transport == config.TransportVayDNS && tunnelCfg.VayDNS != nil {
+		v := tunnelCfg.VayDNS
+		ctx.Output.Println()
+		ctx.Output.Status(fmt.Sprintf("Idle Timeout: %s", v.ResolvedVayDNSIdleTimeout()))
+		ctx.Output.Status(fmt.Sprintf("Keepalive: %s", v.ResolvedVayDNSKeepAlive()))
+		if v.DnsttCompat {
+			ctx.Output.Status("Mode: dnstt-compat (8-byte client IDs)")
+		} else if v.ClientIDSize > 0 {
+			ctx.Output.Status(fmt.Sprintf("Client ID Size: %d bytes", v.ClientIDSize))
+		}
+		rt := v.RecordType
+		if rt == "" {
+			rt = "txt"
+		}
+		ctx.Output.Status(fmt.Sprintf("Record Type: %s", rt))
 	}
 
 	if ctx.IsInteractive {
